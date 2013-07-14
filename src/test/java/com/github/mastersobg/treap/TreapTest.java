@@ -1,29 +1,61 @@
 package com.github.mastersobg.treap;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.*;
 
 public class TreapTest {
 
-    private static final long RND_SEED = 123456789123l;
+    protected static final long RND_SEED = 123456789123l;
+
+    private Treap<Integer> tree;
+    private List<Integer> list;
+    private Treap<Integer> emptyTree;
 
     /* Supported operations:
-    1. insert
-    2. remove
-    3. find
-    4. reverse
-    5. print
-    6. segment operations
-    7. count
-    8. size
-    9. build
-    10. unite
-    11. intersect
-    12. explicit/implicit trees
-    13. getKth
+    1. insert  +
+    2. remove  +
+    3. contains +
+    5. print     +
+    8. size  +
+    9. build  +
+    14. first() +
+    15. last() +
+    16. floor
+     ceil
+      higher
+       lower
+       iterating
      */
+
+    protected boolean checkIncreasing(List<Integer> list) {
+        Integer prev = Integer.MIN_VALUE;
+        for (Integer o : list) {
+            if (prev.compareTo(o) > 0) {
+                return false;
+            }
+            prev = o;
+        }
+        return true;
+    }
+
+    protected List<Integer> getRandomValuesList(int size) {
+        List<Integer> list = new ArrayList<Integer>(size);
+        Random rnd = new Random(RND_SEED);
+        for (int i = 0; i < size; ++i) {
+            list.add(rnd.nextInt());
+        }
+        return list;
+    }
+
+    @Before
+    public void setup() {
+        list = getRandomValuesList(100);
+        tree = new Treap<Integer>(list, RND_SEED);
+        emptyTree = new Treap<Integer>();
+    }
 
     @Test
     public void simpleTest() {
@@ -48,8 +80,6 @@ public class TreapTest {
 
     @Test
     public void testContains() {
-        List<Integer> list = getRandomValuesList(100);
-        Treap<Integer> tree = new Treap<Integer>(list, RND_SEED);
         for (Integer i : list) {
             Assert.assertTrue(tree.contains(i));
         }
@@ -58,6 +88,11 @@ public class TreapTest {
                 Assert.assertFalse(tree.contains(i));
             }
         }
+    }
+
+    @Test
+    public void testContainsInEmpty() {
+        Assert.assertFalse(emptyTree.contains(100));
     }
 
     @Test
@@ -73,15 +108,6 @@ public class TreapTest {
 
     @Test
     public void testRemove() {
-        List<Integer> list = getRandomValuesList(100);
-        HashSet<Integer> set = new HashSet<Integer>();
-        for (Integer o : list) {
-            if (set.contains(o)) {
-                Assert.assertTrue(false);
-            }
-            set.add(o);
-        }
-        Treap<Integer> tree = new Treap<Integer>(list, RND_SEED);
         int size = 100;
         for (Integer o : list) {
             Assert.assertTrue(tree.remove(o));
@@ -94,27 +120,67 @@ public class TreapTest {
             Assert.assertEquals(size, tree.size());
         }
         Assert.assertEquals(0, tree.keysAsList().size());
-
     }
 
-    private boolean checkIncreasing(List<Integer> list) {
-        Integer prev = Integer.MIN_VALUE;
+    @Test
+    public void testRemoveDuplicated() {
+        for (int i = 0; i < 10; ++i) {
+            emptyTree.add(100);
+        }
+        for (int i = 0; i < 10; ++i) {
+            Assert.assertTrue(emptyTree.contains(100));
+            Assert.assertTrue(emptyTree.remove(100));
+            tree.checkPrioritiesState();
+            Assert.assertTrue(checkIncreasing(tree.keysAsList()));
+        }
+        Assert.assertFalse(emptyTree.contains(100));
+        Assert.assertFalse(emptyTree.remove(100));
+    }
+
+    @Test
+    public void testRemoveFromEmpty() {
+        Assert.assertFalse(emptyTree.remove(100));
+    }
+
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testAddNull() {
+        emptyTree.add(null);
+    }
+
+    @Test
+    public void testContainsRemoveNull() {
+        Assert.assertFalse(emptyTree.contains(null));
+        Assert.assertFalse(emptyTree.remove(null));
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void testFirstNull() {
+        emptyTree.first();
+    }
+
+    @Test
+    public void testFirst() {
+        Collections.sort(list);
         for (Integer o : list) {
-            if (prev.compareTo(o) > 0) {
-                return false;
-            }
-            prev = o;
+            Assert.assertEquals(o, tree.first());
+            tree.remove(o);
         }
-        return true;
     }
 
-    private List<Integer> getRandomValuesList(int size) {
-        List<Integer> list = new ArrayList<Integer>(size);
-        Random rnd = new Random(RND_SEED);
-        for (int i = 0; i < size; ++i) {
-            list.add(rnd.nextInt());
+
+    @Test(expected = NoSuchElementException.class)
+    public void testLastNull() {
+        emptyTree.first();
+    }
+
+    @Test
+    public void testLast() {
+        Collections.sort(list);
+        for (int i = list.size() - 1; i >= 0; --i) {
+            Assert.assertEquals(list.get(i), tree.last());
+            tree.remove(list.get(i));
         }
-        return list;
     }
 
 }

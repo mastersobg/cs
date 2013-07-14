@@ -1,9 +1,6 @@
 package com.github.mastersobg.treap;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Treap<T> {
 
@@ -33,6 +30,9 @@ public class Treap<T> {
     }
 
     public void add(T value) {
+        if (value == null) {
+            throw new IllegalArgumentException("value is null");
+        }
         Node node = new Node(value);
         ++size;
         if (root == null) {
@@ -72,6 +72,36 @@ public class Treap<T> {
         StringBuilder sb = new StringBuilder();
         walkTree(root, sb);
         return sb.toString();
+    }
+
+    public T first() {
+        if (size == 0) {
+            throw new NoSuchElementException("tree is empty");
+        }
+        return first(root);
+    }
+
+    public T last() {
+        if (size == 0) {
+            throw new NoSuchElementException("tree is empty");
+        }
+        return last(root);
+    }
+
+    private T last(Node tree) {
+        if (tree.right != null) {
+            return last(tree.right);
+        } else {
+            return tree.key;
+        }
+    }
+
+    private T first(Node tree) {
+        if (tree.left != null) {
+            return first(tree.left);
+        } else {
+            return tree.key;
+        }
     }
 
     private boolean contains(Node tree, T key) {
@@ -174,7 +204,7 @@ public class Treap<T> {
         @Override
         public String toString() {
             return "[" +
-                    "key = " + key.toString() +
+                    "key = " + key +
                     " priority = " + priority +
                     " left key = " + (left == null ? "null" : left.key.toString()) +
                     " right key = " + (right == null ? "null" : right.key.toString()) +
