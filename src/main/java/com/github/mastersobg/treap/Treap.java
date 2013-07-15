@@ -2,7 +2,7 @@ package com.github.mastersobg.treap;
 
 import java.util.*;
 
-public class Treap<T> {
+public class Treap<T> implements Iterable<T> {
 
     private static final Random RANDOM = new Random();
 
@@ -86,6 +86,94 @@ public class Treap<T> {
             throw new NoSuchElementException("tree is empty");
         }
         return last(root);
+    }
+
+    public T floor(T key) {
+        Node node = floor(root, key);
+        return node == null ? null : node.key;
+    }
+
+    public T ceiling(T key) {
+        Node node = ceiling(root, key);
+        return node == null ? null : node.key;
+    }
+
+    public T higher(T key) {
+        Node node = higher(root, key);
+        return node == null ? null : node.key;
+    }
+
+    public T lower(T key) {
+        Node node = lower(root, key);
+        return node == null ? null : node.key;
+    }
+
+
+    @Override
+    public Iterator<T> iterator() {
+        return new TreapIterator();
+    }
+
+    private Node lower(Node tree, T key) {
+        if (tree == null) {
+            return null;
+        }
+        int cmp = tree.getComparable().compareTo(key);
+        if (cmp < 0) {
+            if (tree.right != null) {
+                return lower(tree.right, key);
+            } else {
+                return tree;
+            }
+        } else {
+            return lower(tree.left, key);
+        }
+    }
+
+    private Node higher(Node tree, T key) {
+        if (tree == null) {
+            return null;
+        }
+        int cmp = tree.getComparable().compareTo(key);
+        if (cmp <= 0) {
+            return higher(tree.right, key);
+        } else {
+            Node node = higher(tree.left, key);
+            return node == null ? tree : node;
+        }
+    }
+
+    private Node ceiling(Node tree, T key) {
+        if (tree == null) {
+            return null;
+        }
+        int cmp = tree.getComparable().compareTo(key);
+        if (cmp == 0) {
+            return tree;
+        } else if (cmp < 0) {
+            return ceiling(tree.right, key);
+        } else {
+            Node node = ceiling(tree.left, key);
+            return node == null ? tree : node;
+        }
+    }
+
+    private Node floor(Node tree, T key) {
+        if (tree == null) {
+            return null;
+        }
+        int cmp = tree.getComparable().compareTo(key);
+        if (cmp == 0) {
+            return tree;
+        } else if (cmp < 0) {
+            if (tree.right != null) {
+                return floor(tree.right, key);
+            } else {
+                return tree;
+            }
+        } else {
+            return floor(tree.left, key);
+        }
     }
 
     private T last(Node tree) {
@@ -209,6 +297,78 @@ public class Treap<T> {
                     " left key = " + (left == null ? "null" : left.key.toString()) +
                     " right key = " + (right == null ? "null" : right.key.toString()) +
                     "]";
+        }
+    }
+
+    private class TreapIterator implements Iterator<T> {
+
+        // The following two stacks are for modeling depth-first-search in-order iterative traverse of the tree.
+        private Node []nStack;
+        // sStack corresponds to the vertex's in-order traversal state.
+        // false - traverse the left subtree, true - traverse the right subtree
+        private boolean []sStack;
+        private int ptr = 0;
+
+        public TreapIterator() {
+            nStack = new Treap.Node[size];
+            sStack = new boolean[size];
+            if (root != null) {
+                pushStack(root, false);
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return ptr > 0;
+        }
+
+        @Override
+        public T next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            boolean state = topStackState();
+            Node node = topStackNode();
+            while (!state && node.left != null) {
+                popStack();
+                pushStack(node, true);
+                pushStack(node.left, false);
+
+                state = topStackState();
+                node = topStackNode();
+            }
+
+            popStack();
+
+            if (node.right != null) {
+                pushStack(node.right, false);
+            }
+
+            return node.key;
+        }
+
+        void pushStack(Node node, boolean state) {
+            nStack[ptr] = node;
+            sStack[ptr++] = state;
+        }
+
+        Node topStackNode() {
+            return nStack[ptr - 1];
+        }
+
+        boolean topStackState() {
+            return sStack[ptr - 1];
+        }
+
+        void popStack() {
+            --ptr;
+            nStack[ptr] = null;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
         }
     }
 

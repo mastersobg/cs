@@ -13,6 +13,7 @@ public class TreapTest {
     private Treap<Integer> tree;
     private List<Integer> list;
     private Treap<Integer> emptyTree;
+    private Random rnd;
 
     /* Supported operations:
     1. insert  +
@@ -23,11 +24,12 @@ public class TreapTest {
     9. build  +
     14. first() +
     15. last() +
-    16. floor
-     ceil
-      higher
-       lower
-       iterating
+    16. floor  +
+     ceil +
+      higher +
+       lower +
+       iterating +
+       test null params
      */
 
     protected boolean checkIncreasing(List<Integer> list) {
@@ -43,7 +45,7 @@ public class TreapTest {
 
     protected List<Integer> getRandomValuesList(int size) {
         List<Integer> list = new ArrayList<Integer>(size);
-        Random rnd = new Random(RND_SEED);
+        rnd = new Random(RND_SEED);
         for (int i = 0; i < size; ++i) {
             list.add(rnd.nextInt());
         }
@@ -155,7 +157,7 @@ public class TreapTest {
     }
 
     @Test(expected = NoSuchElementException.class)
-    public void testFirstNull() {
+    public void testFirstInEmpty() {
         emptyTree.first();
     }
 
@@ -170,7 +172,7 @@ public class TreapTest {
 
 
     @Test(expected = NoSuchElementException.class)
-    public void testLastNull() {
+    public void testLastInEmpty() {
         emptyTree.first();
     }
 
@@ -183,4 +185,102 @@ public class TreapTest {
         }
     }
 
+    @Test
+    public void testFloorInEmpty() {
+        Assert.assertNull(emptyTree.floor(10));
+        Assert.assertNull(emptyTree.floor(null));
+    }
+
+    @Test
+    public void testFloor() {
+        TreeSet<Integer> set = new TreeSet<Integer>(list);
+        for (int i = 0; i < 100; ++i) {
+            int value = rnd.nextInt();
+            Assert.assertEquals(set.floor(value), tree.floor(value));
+        }
+
+        Assert.assertNull(tree.floor(tree.first() - 1));
+        Assert.assertEquals(set.last(), tree.floor(tree.last() + 1));
+    }
+
+
+    @Test
+    public void testCeilInEmpty() {
+        Assert.assertNull(emptyTree.ceiling(10));
+        Assert.assertNull(emptyTree.ceiling(null));
+    }
+
+    @Test
+    public void testCeil() {
+        TreeSet<Integer> set = new TreeSet<Integer>(list);
+        for (int i = 0; i < 100; ++i) {
+            int value = rnd.nextInt();
+            Assert.assertEquals(set.ceiling(value), tree.ceiling(value));
+        }
+
+        Assert.assertEquals(set.first(), tree.ceiling(tree.first() - 1));
+        Assert.assertNull(tree.ceiling(tree.last() + 1));
+    }
+
+    @Test
+    public void testHigherInEmpty() {
+        Assert.assertNull(emptyTree.higher(10));
+        Assert.assertNull(emptyTree.higher(null));
+    }
+
+    @Test
+    public void testHigher() {
+        TreeSet<Integer> set = new TreeSet<Integer>(list);
+        for (int i = 0; i < 100; ++i) {
+            int value = rnd.nextInt();
+            Assert.assertEquals(set.higher(value), tree.higher(value));
+        }
+
+        for (Integer i : list) {
+            Assert.assertEquals(set.higher(i), tree.higher(i));
+        }
+
+        Assert.assertEquals(set.first(), tree.higher(tree.first() - 1));
+        Assert.assertNull(tree.higher(tree.last() + 1));
+    }
+
+    @Test
+    public void testLowerInEmpty() {
+        Assert.assertNull(emptyTree.lower(10));
+        Assert.assertNull(emptyTree.lower(null));
+    }
+
+    @Test
+    public void testLower() {
+        TreeSet<Integer> set = new TreeSet<Integer>(list);
+        for (int i = 0; i < 100; ++i) {
+            int value = rnd.nextInt();
+            Assert.assertEquals(set.lower(value), tree.lower(value));
+        }
+
+        for (Integer i : list) {
+            Assert.assertEquals(set.lower(i), tree.lower(i));
+        }
+
+        Assert.assertNull(tree.lower(tree.first() - 1));
+        Assert.assertEquals(set.last(), tree.lower(tree.last() + 1));
+    }
+
+    @Test
+    public void testIterableEmpty() {
+        //noinspection StatementWithEmptyBody
+        for (Integer ignored : emptyTree) {
+
+        }
+        Assert.assertFalse(emptyTree.iterator().hasNext());
+    }
+
+    @Test
+    public void testIterable() {
+        Collections.sort(list);
+        int index = 0;
+        for (Integer i : tree) {
+            Assert.assertEquals(list.get(index++), i);
+        }
+    }
 }
